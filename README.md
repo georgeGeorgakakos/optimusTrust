@@ -1,23 +1,33 @@
-# optimusTrust — Persist & Retrieve JSON in OptimusDB
+# optimusTrust
 
 Store JSON documents in a dedicated [OptimusDB](http://193.225.250.240/optimusdb1)
-datastore and retrieve them by **criteria** (field match, comparison operators,
-or raw `$and`/`$or`), using the [`optimusPy`](https://github.com/georgeGeorgakakos/optimusPy)
-client. Documents land in their own datastore (`dstype = kbtrust`) and are
-CRDT-replicated across peers like any other OptimusDB collection.
+datastore and retrieve them by **criteria** — field match, comparison operators,
+or raw `$and`/`$or` — using the
+[`optimusPy`](https://github.com/georgeGeorgakakos/optimusPy) client.
 
-There is no scoring or domain logic here: you give it a JSON file, it persists the
-document(s); you give it criteria, it returns the matching documents.
+Documents live in their own datastore (`dstype = kbtrust`) and are
+CRDT-replicated across peers like any other OptimusDB collection. There is no
+scoring or domain logic: give it a JSON file and it persists the document(s);
+give it criteria and it returns the matching documents.
+
+> Looking for the **Beta-reputation / trust-scoring** variant (record interactions,
+> compute trust scores, rank election candidates)? See
+> [`README_trustScore.md`](README_trustScore.md), which documents `trust_store.py`
+> and `tms_demo.py`.
 
 ## Repository layout
 
 ```
 optimusTrust/
-├── store_demo.py           # CLI: persist / retrieve / delete / health
+├── store_demo.py           # CLI: persist / retrieve / delete / health   ← main tool
 ├── sample_documents.json   # sample documents to store and query
+├── trust_store.py          # OPTIONAL Beta-reputation library
+├── tms_demo.py             # OPTIONAL scoring demo (see README_trustScore.md)
+├── sample_trust_data.json  # OPTIONAL sample data for the scoring demo
 ├── requirements.txt
 ├── setup.sh                # Linux / macOS bootstrap
 ├── setup.ps1               # Windows / PowerShell bootstrap
+├── LICENSE
 └── README.md
 ```
 
@@ -38,10 +48,11 @@ Used by `retrieve` and `delete`. Repeat `--where` to AND multiple conditions.
 | greater / less | `--where trust_level:0.6:gte` | `{"trust_level": {"$gte": 0.6}}` |
 | not equal | `--where verified:false:ne` | `{"verified": {"$ne": false}}` |
 | regex | `--where peer_id:^Qmaq.*:regex` | `{"peer_id": {"$regex": "^Qmaq.*"}}` |
-| raw (for `$or`/`$and`) | `--raw '{"$or":[{"context":"storage"},{"context":"compute"}]}'` | merged in |
+| raw (`$or`/`$and`) | `--raw '{"$or":[{"context":"storage"},{"context":"compute"}]}'` | merged in |
 
 Operators: `gt`, `gte`, `lt`, `lte`, `ne`, `regex`. Values are auto-typed
-(`true`/`false` → boolean, numbers → int/float, otherwise string).
+(`true`/`false` → boolean, numbers → int/float, otherwise string). `--store`,
+`--url`, `--api-context`, and `--log-level` may be placed after the subcommand.
 
 ---
 
@@ -51,6 +62,13 @@ Operators: `gt`, `gte`, `lt`, `lte`, `ne`, `regex`. Values are auto-typed
 ```bash
 chmod +x setup.sh
 ./setup.sh
+```
+`setup.sh` clones optimusPy, copies `optimusdb_client.py` into the project root,
+and installs dependencies.
+
+### Check the agent
+```bash
+python3 store_demo.py health
 ```
 
 ### Persist
@@ -78,7 +96,15 @@ python3 store_demo.py delete --store kbtrust --where _id:peer:QmVgdCZ5T6UAkp474j
 
 ### Setup
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\setup.ps1
+Set-ExecutionPolicy -Scope Process -Bypass   # only if the script is blocked
+.\setup.ps1
+```
+`setup.ps1` clones optimusPy, copies `optimusdb_client.py` into the project root,
+and installs dependencies.
+
+### Check the agent
+```powershell
+python store_demo.py health
 ```
 
 ### Persist
@@ -94,8 +120,7 @@ python store_demo.py retrieve --store kbtrust --where role:follower --where veri
 python store_demo.py retrieve --store kbtrust --raw '{\"$or\":[{\"context\":\"storage\"},{\"context\":\"compute\"}]}'
 python store_demo.py retrieve --store kbtrust            # no criteria -> all docs
 ```
-
-> PowerShell needs the inner quotes in `--raw` escaped as `\"` (shown above).
+> In PowerShell the inner quotes inside `--raw` must be escaped as `\"` (shown above).
 
 ### Delete by criteria
 ```powershell
@@ -104,7 +129,7 @@ python store_demo.py delete --store kbtrust --where _id:peer:QmVgdCZ5T6UAkp474jd
 
 ---
 
-## Example
+## Example session
 
 ```
 $ python store_demo.py persist --file sample_documents.json --store kbtrust
@@ -131,7 +156,7 @@ Retrieved 1 document(s):
 ## Notes
 
 - **Document IDs.** Any document without an `_id` gets a generated one on persist.
-  Because OrbitDB's docstore replaces by `_id`, persisting a document whose `_id`
+  OrbitDB's docstore replaces by `_id`, so persisting a document whose `_id`
   already exists **updates** it (upsert) rather than duplicating.
 - **The datastore.** The first `persist` run is also the test of whether `kbtrust`
   is accepted: if writes round-trip into `retrieve`, lazy store creation works; if
@@ -155,4 +180,4 @@ client.get(criteria=[{"trust_level": {"$gte": 0.6}}], dstype="kbtrust")
 
 ## License
 
-MIT — free to use and modify for Swarmchestrate testing.
+MIT — see [LICENSE](LICENSE).

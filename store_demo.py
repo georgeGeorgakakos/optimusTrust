@@ -181,26 +181,30 @@ def cmd_delete(args):
 # ---------------------------------------------------------------------------
 
 def main():
-    p = argparse.ArgumentParser(description="Persist / retrieve JSON in OptimusDB by criteria")
-    p.add_argument("--url", default="http://193.225.250.240/optimusdb1")
-    p.add_argument("--api-context", default="swarmkb", help="OptimusDB API context path")
-    p.add_argument("--store", default=DEFAULT_STORE, help="datastore (dstype)")
-    p.add_argument("--log-level", default="WARNING")
+    # Common flags live on a parent parser so they are accepted *after* the
+    # subcommand, e.g.  `store_demo.py persist --file x.json --store kbtrust`.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--url", default="http://193.225.250.240/optimusdb1")
+    common.add_argument("--api-context", default="swarmkb", help="OptimusDB API context path")
+    common.add_argument("--store", default=DEFAULT_STORE, help="datastore (dstype)")
+    common.add_argument("--log-level", default="WARNING")
 
+    p = argparse.ArgumentParser(description="Persist / retrieve JSON in OptimusDB by criteria")
     sub = p.add_subparsers(dest="command", required=True)
 
-    sp = sub.add_parser("health"); sp.set_defaults(func=cmd_health)
+    sp = sub.add_parser("health", parents=[common])
+    sp.set_defaults(func=cmd_health)
 
-    sp = sub.add_parser("persist")
+    sp = sub.add_parser("persist", parents=[common])
     sp.add_argument("--file", required=True)
     sp.set_defaults(func=cmd_persist)
 
-    sp = sub.add_parser("retrieve")
+    sp = sub.add_parser("retrieve", parents=[common])
     sp.add_argument("--where", action="append", help="field:value[:operator] (repeatable)")
     sp.add_argument("--raw", help="raw criteria JSON, merged in (for $or/$and/nested)")
     sp.set_defaults(func=cmd_retrieve)
 
-    sp = sub.add_parser("delete")
+    sp = sub.add_parser("delete", parents=[common])
     sp.add_argument("--where", action="append")
     sp.add_argument("--raw")
     sp.set_defaults(func=cmd_delete)
