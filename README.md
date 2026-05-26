@@ -1,23 +1,20 @@
-# optimusTrust — TMS ↔ OptimusDB Integration Test
+# optimusTrust — Persist & Retrieve JSON in OptimusDB
 
-A small, self-contained test harness that persists and retrieves **trust /
-reputation records** for the Swarmchestrate cluster, using a dedicated
-[OptimusDB](http://193.225.250.240/optimusdb1) datastore via the
-[`optimusPy`](https://github.com/georgeGeorgakakos/optimusPy) client.
+Store JSON documents in a dedicated [OptimusDB](http://193.225.250.240/optimusdb1)
+datastore and retrieve them by **criteria** (field match, comparison operators,
+or raw `$and`/`$or`), using the [`optimusPy`](https://github.com/georgeGeorgakakos/optimusPy)
+client. Documents land in their own datastore (`dstype = kbtrust`) and are
+CRDT-replicated across peers like any other OptimusDB collection.
 
-Trust records live in their own datastore (`dstype = kbtrust`) and are
-CRDT-replicated across peers like any other OptimusDB collection. Scoring uses
-the **Beta Reputation model** (Jøsang & Ismail): `score = α / (α + β)`, where
-each positive interaction increments `α` and each negative one increments `β`.
-Unknown subjects start at 0.5.
+There is no scoring or domain logic here: you give it a JSON file, it persists the
+document(s); you give it criteria, it returns the matching documents.
 
 ## Repository layout
 
 ```
 optimusTrust/
-├── trust_store.py          # the TMS persistence layer (reusable library)
-├── tms_demo.py             # CLI runner: health / persist / retrieve / wipe
-├── sample_trust_data.json  # sample data wired to the live cluster peer IDs
+├── store_demo.py           # CLI: persist / retrieve / delete / health
+├── sample_documents.json   # sample documents to store and query
 ├── requirements.txt
 ├── setup.sh                # Linux / macOS bootstrap
 ├── setup.ps1               # Windows / PowerShell bootstrap
@@ -26,54 +23,53 @@ optimusTrust/
 
 ## Prerequisites (all platforms)
 
-- Python 3.8+
-- `git`
+- Python 3.8+, `git`
 - Network access to an OptimusDB agent (default `http://193.225.250.240/optimusdb1`)
 - `optimusdb_client.py` from optimusPy — **not committed here**; the setup script
   for your OS fetches it automatically.
+
+## Criteria syntax
+
+Used by `retrieve` and `delete`. Repeat `--where` to AND multiple conditions.
+
+| Form | Example | Sent to OptimusDB |
+|------|---------|-------------------|
+| exact | `--where context:storage` | `{"context": "storage"}` |
+| greater / less | `--where trust_level:0.6:gte` | `{"trust_level": {"$gte": 0.6}}` |
+| not equal | `--where verified:false:ne` | `{"verified": {"$ne": false}}` |
+| regex | `--where peer_id:^Qmaq.*:regex` | `{"peer_id": {"$regex": "^Qmaq.*"}}` |
+| raw (for `$or`/`$and`) | `--raw '{"$or":[{"context":"storage"},{"context":"compute"}]}'` | merged in |
+
+Operators: `gt`, `gte`, `lt`, `lte`, `ne`, `regex`. Values are auto-typed
+(`true`/`false` → boolean, numbers → int/float, otherwise string).
 
 ---
 
 # 🐧 Linux / macOS
 
 ### Setup
-
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
 
-`setup.sh` clones optimusPy, copies `optimusdb_client.py` into the project root,
-and installs the dependencies. Manual equivalent:
-
+### Persist
 ```bash
-pip3 install -r requirements.txt
-git clone --depth 1 https://github.com/georgeGeorgakakos/optimusPy.git .optimuspy
-cp .optimuspy/optimusdb_client.py .
+python3 store_demo.py persist --file sample_documents.json --store kbtrust
 ```
 
-### 1. Check the agent
-
+### Retrieve by criteria
 ```bash
-python3 tms_demo.py health
+python3 store_demo.py retrieve --store kbtrust --where context:storage
+python3 store_demo.py retrieve --store kbtrust --where trust_level:0.6:gte
+python3 store_demo.py retrieve --store kbtrust --where role:follower --where verified:true
+python3 store_demo.py retrieve --store kbtrust --raw '{"$or":[{"context":"storage"},{"context":"compute"}]}'
+python3 store_demo.py retrieve --store kbtrust            # no criteria -> all docs
 ```
 
-### 2. Persist data
-
+### Delete by criteria
 ```bash
-python3 tms_demo.py persist --file sample_trust_data.json
-```
-
-### 3. Retrieve data
-
-```bash
-python3 tms_demo.py retrieve --context storage --threshold 0.7
-```
-
-### 4. Clean up (optional)
-
-```bash
-python3 tms_demo.py wipe --context storage
+python3 store_demo.py delete --store kbtrust --where _id:peer:QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42
 ```
 
 ---
@@ -81,127 +77,82 @@ python3 tms_demo.py wipe --context storage
 # 🪟 Windows (PowerShell)
 
 ### Setup
-
 ```powershell
+Set-ExecutionPolicy -Scope Process -Bypass   # only if scripts are blocked
 .\setup.ps1
 ```
 
-If PowerShell blocks the script with an execution-policy error, allow it for the
-current session and re-run:
-
+### Persist
 ```powershell
-Set-ExecutionPolicy -Scope Process -Bypass
-.\setup.ps1
+python store_demo.py persist --file sample_documents.json --store kbtrust
 ```
 
-`setup.ps1` clones optimusPy, copies `optimusdb_client.py` into the project root,
-and installs the dependencies. Manual equivalent:
-
+### Retrieve by criteria
 ```powershell
-pip install -r requirements.txt
-git clone --depth 1 https://github.com/georgeGeorgakakos/optimusPy.git .optimuspy
-Copy-Item .\.optimuspy\optimusdb_client.py .\optimusdb_client.py -Force
+python store_demo.py retrieve --store kbtrust --where context:storage
+python store_demo.py retrieve --store kbtrust --where trust_level:0.6:gte
+python store_demo.py retrieve --store kbtrust --where role:follower --where verified:true
+python store_demo.py retrieve --store kbtrust --raw '{\"$or\":[{\"context\":\"storage\"},{\"context\":\"compute\"}]}'
+python store_demo.py retrieve --store kbtrust            # no criteria -> all docs
 ```
 
-### 1. Check the agent
+> PowerShell needs the inner quotes in `--raw` escaped as `\"` (shown above).
 
+### Delete by criteria
 ```powershell
-python tms_demo.py health
-```
-
-### 2. Persist data
-
-```powershell
-python tms_demo.py persist --file sample_trust_data.json
-```
-
-### 3. Retrieve data
-
-```powershell
-python tms_demo.py retrieve --context storage --threshold 0.7
-```
-
-### 4. Clean up (optional)
-
-```powershell
-python tms_demo.py wipe --context storage
+python store_demo.py delete --store kbtrust --where _id:peer:QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42
 ```
 
 ---
 
-## Expected output (any platform)
-
-`health`:
+## Example
 
 ```
-✓ Agent reachable
-  peer_id        : QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy
-  role           : Coordinator  (coordinator=True, leader=True)
-  health score   : 63.23  (Good)
-  cluster peers  : total=3 coordinators=1 followers=2
+$ python store_demo.py persist --file sample_documents.json --store kbtrust
+Persisting 3 document(s) into store 'kbtrust'...
+  stored _id=peer:QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy
+  stored _id=peer:QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4
+  stored _id=peer:QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42
+Done.
+
+$ python store_demo.py retrieve --store kbtrust --where trust_level:0.6:gte
+Querying store 'kbtrust' with criteria: [{"trust_level": {"$gte": 0.6}}]
+Retrieved 1 document(s):
+
+{
+  "_id": "peer:QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy",
+  "context": "storage",
+  "role": "coordinator",
+  "trust_level": 0.8,
+  "verified": true,
+  ...
+}
 ```
 
-`retrieve`:
+## Notes
 
-```
-All trust records in context 'storage':
-  subject_id                                          score   conf    n     last
-  QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy      0.800   0.867   3  success
-  QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4      0.533   0.867   3  success
-  QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42      0.467   0.867   3  success
+- **Document IDs.** Any document without an `_id` gets a generated one on persist.
+  Because OrbitDB's docstore replaces by `_id`, persisting a document whose `_id`
+  already exists **updates** it (upsert) rather than duplicating.
+- **The datastore.** The first `persist` run is also the test of whether `kbtrust`
+  is accepted: if writes round-trip into `retrieve`, lazy store creation works; if
+  not, register `kbtrust` in the Go agent config.
+- **`$or` / `$and`.** Passed through `--raw` and evaluated server-side by OptimusDB.
 
-Most trusted (election candidates):
-  QmaqAyTizLPzFSsDxNnteTGHZf3…  0.800
-
-Trustworthy (score >= 0.7):
-  QmaqAyTizLPzFSsDxNnteTGHZf3…  0.800
-```
-
-> **Note on the datastore.** `agent/status` confirms reachability but does *not*
-> list which `dstype` names the agent accepts. The first `persist` run is also
-> the test of whether `kbtrust` is allowed: if writes round-trip into `retrieve`,
-> lazy store creation works; if not, register `kbtrust` in the Go agent config.
-
-## Using the library directly
+## Library / programmatic use
 
 ```python
 from optimusdb_client import OptimusDBClient
-from trust_store import TrustStore
+client = OptimusDBClient()
 
-ts = TrustStore(OptimusDBClient())
+# persist
+client.create(documents=[{"_id": "peer:X", "context": "storage", "trust_level": 0.8}],
+              dstype="kbtrust")
 
-# PERSIST
-ts.record_interaction("peer-A", success=True, context="storage")
-ts.set_trust("peer-B", score=0.9, context="storage")
-
-# RETRIEVE
-ts.get_score("peer-A", context="storage")          # float in [0, 1]
-ts.most_trusted(context="storage", top=3)          # ranked candidates
-ts.trustworthy(threshold=0.7, context="storage")   # filtered, ranked
+# retrieve by criteria
+client.get(criteria=[{"context": "storage"}], dstype="kbtrust")
+client.get(criteria=[{"trust_level": {"$gte": 0.6}}], dstype="kbtrust")
 ```
-
-## Common options
-
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--url` | `http://193.225.250.240/optimusdb1` | OptimusDB base URL |
-| `--api-context` | `swarmkb` | OptimusDB API context (the `{context}` path segment) |
-| `--store` | `kbtrust` | datastore (`dstype`) for trust records |
-| `--log-level` | `WARNING` | `DEBUG` to see raw requests/responses |
-
-## Record schema
-
-One record per subject per context, keyed `trust:<context>:<subject_id>` so
-repeated writes upsert in place:
-
-| Field | Description |
-|-------|-------------|
-| `subject_id`, `subject_type` | who the trust is about (peer / agent / resource) |
-| `context` | trust is context-scoped (e.g. `storage`, `compute`) |
-| `alpha`, `beta` | Beta-distribution evidence counters |
-| `trust_score`, `confidence` | derived score and evidence-weight |
-| `interaction_count`, `last_outcome` | interaction history summary |
-| `source_peer`, `created_at`, `updated_at` | provenance |
 
 ## License
 

@@ -1,0 +1,35 @@
+[
+  {
+    "_id": "peer:QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy",
+    "type": "peer",
+    "peer_id": "QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy",
+    "role": "coordinator",
+    "context": "storage",
+    "trust_level": 0.80,
+    "verified": true,
+    "region": "eu-south",
+    "tags": ["leader", "stable"]
+  },
+  {
+    "_id": "peer:QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4",
+    "type": "peer",
+    "peer_id": "QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4",
+    "role": "follower",
+    "context": "storage",
+    "trust_level": 0.55,
+    "verified": true,
+    "region": "eu-south",
+    "tags": ["replica"]
+  },
+  {
+    "_id": "peer:QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42",
+    "type": "peer",
+    "peer_id": "QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42",
+    "role": "follower",
+    "context": "compute",
+    "trust_level": 0.40,
+    "verified": false,
+    "region": "eu-central",
+    "tags": ["replica", "probation"]
+  }
+]
