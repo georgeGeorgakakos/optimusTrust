@@ -78,8 +78,7 @@ python3 store_demo.py delete --store kbtrust --where _id:peer:QmVgdCZ5T6UAkp474j
 
 ### Setup
 ```powershell
-Set-ExecutionPolicy -Scope Process -Bypass   # only if scripts are blocked
-.\setup.ps1
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 ### Persist
