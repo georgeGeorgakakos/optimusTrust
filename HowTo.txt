@@ -1,0 +1,10 @@
+# create the repo on GitHub, then:
+cd tms-optimusdb-test
+git init && git add . && git commit -m "TMS ↔ OptimusDB integration test"
+git remote add origin git@github.com:georgeGeorgakakos/tms-optimusdb-test.git
+git push -u origin main
+
+./setup.sh
+python3 tms_demo.py health
+python3 tms_demo.py persist  --file sample_trust_data.json
+python3 tms_demo.py retrieve --context storage

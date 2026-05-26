@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.optimuspy/
+optimusdb_client.py
+*.bak
+.venv/

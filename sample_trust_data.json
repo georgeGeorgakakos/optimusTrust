@@ -1,0 +1,37 @@
+{
+  "context": "storage",
+  "_comment": "Sample trust data for the Swarmchestrate cluster. Peer IDs are taken from the live agent/status response. 'seed_scores' set an initial reputation; 'interactions' are then replayed as positive/negative evidence using the Beta reputation model.",
+  "seed_scores": [
+    {
+      "subject_id": "QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy",
+      "subject_type": "peer",
+      "score": 0.80,
+      "note": "Coordinator / current Raft leader"
+    },
+    {
+      "subject_id": "QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4",
+      "subject_type": "peer",
+      "score": 0.50,
+      "note": "Follower"
+    },
+    {
+      "subject_id": "QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42",
+      "subject_type": "peer",
+      "score": 0.50,
+      "note": "Follower"
+    }
+  ],
+  "interactions": [
+    { "subject_id": "QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy", "success": true,  "source_peer": "self" },
+    { "subject_id": "QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy", "success": true,  "source_peer": "self" },
+    { "subject_id": "QmaqAyTizLPzFSsDxNnteTGHZf3o5CVt9NfpSVDMSYbEZy", "success": true,  "source_peer": "self" },
+
+    { "subject_id": "QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4", "success": true,  "source_peer": "self" },
+    { "subject_id": "QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4", "success": false, "source_peer": "self" },
+    { "subject_id": "QmTXRdGdVYWpNEub9Ud1sxnHjwWfQrsWMeJ9YPeDGHc6S4", "success": true,  "source_peer": "self" },
+
+    { "subject_id": "QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42", "success": false, "source_peer": "self" },
+    { "subject_id": "QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42", "success": false, "source_peer": "self" },
+    { "subject_id": "QmVgdCZ5T6UAkp474jd2Tt3Xb7WhYqixkMbuhAMpXZAg42", "success": true,  "source_peer": "self" }
+  ]
+}
