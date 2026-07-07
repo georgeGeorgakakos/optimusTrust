@@ -1,0 +1,12 @@
+{
+  "request": {
+    "did": "did:swarm:provider-alpha",
+    "subject_type": "capacity_provider",
+    "trusted": true
+  },
+  "response": {
+    "did": "did:swarm:provider-alpha",
+    "subject_type": "capacity_provider",
+    "trusted": true
+  }
+}

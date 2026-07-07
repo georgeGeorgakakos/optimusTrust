@@ -1,0 +1,28 @@
+[
+  {
+    "did": "did:swarm:provider-alpha",
+    "name": "Alpha Cloud Provider",
+    "owner": "org:alpha-labs",
+    "vm_count": "12",
+    "auth_count": "3",
+    "service_count": "5",
+    "direct_trust": true,
+    "metrics": {
+      "uptime": 0.9781,
+      "error_rate": 0.0123,
+      "latency_ms": 142.37
+    },
+    "reputation": 0.65
+  },
+  {
+    "did": "did:swarm:provider-beta",
+    "name": "Beta Edge Provider",
+    "owner": "org:beta-labs",
+    "vm_count": "4",
+    "auth_count": "1",
+    "service_count": "2",
+    "direct_trust": false,
+    "metrics": null,
+    "reputation": null
+  }
+]

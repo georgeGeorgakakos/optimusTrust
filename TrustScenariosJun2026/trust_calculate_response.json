@@ -1,0 +1,52 @@
+{
+  "trust_scores": [
+    {
+      "provider_did": "did:swarm:provider-alpha",
+      "provider_name": "Alpha Cloud Provider",
+      "trust_score": 0.8214,
+      "performance_trust": 0.8637,
+      "reputation_component": 0.65,
+      "aggregated_metrics": {
+        "uptime": 0.9781,
+        "error_rate": 0.0123,
+        "latency_ms": 142.37
+      },
+      "devices": [
+        {
+          "device_did": "did:swarm:capacity-vm-01",
+          "device_name": "edge-node-01",
+          "device_type": "edge",
+          "capacity_trust": 0.8802,
+          "monitoring": {
+            "uptime": 0.9821,
+            "error_rate": 0.0091,
+            "latency_ms": 118.42
+          },
+          "historical_trust": [
+            { "score": 0.8511, "timestamp": "2026-06-29T09:12:03.451000+00:00" },
+            { "score": 0.8677, "timestamp": "2026-06-30T09:12:04.118000+00:00" }
+          ]
+        },
+        {
+          "device_did": "did:swarm:capacity-vm-02",
+          "device_name": "cloud-node-02",
+          "device_type": "cloud",
+          "capacity_trust": 0.8471,
+          "monitoring": {
+            "uptime": 0.9701,
+            "error_rate": 0.0187,
+            "latency_ms": 176.05
+          },
+          "historical_trust": [
+            { "score": 0.8203, "timestamp": "2026-06-29T09:12:03.451000+00:00" },
+            { "score": 0.8390, "timestamp": "2026-06-30T09:12:04.118000+00:00" }
+          ]
+        }
+      ],
+      "historical_trust": [
+        { "score": 0.7912, "timestamp": "2026-06-29T09:12:04.220000+00:00" },
+        { "score": 0.8054, "timestamp": "2026-06-30T09:12:05.003000+00:00" }
+      ]
+    }
+  ]
+}
